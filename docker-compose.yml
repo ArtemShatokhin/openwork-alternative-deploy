@@ -1,0 +1,107 @@
+# Kortix is open source.
+#
+# Kortix is the open-source AI Operating System. This Compose file is the
+# multi-service application tier of a self-hosted Kortix instance: a Postgres
+# database, the kortix-api image, the LLM gateway, and the frontend. It is the
+# readable template of the stack the Kortix CLI renders, so you can edit every
+# service before you point a domain at it.
+#
+# The complete production stack, which also includes the Supabase distribution
+# (Kong, auth, REST, storage, realtime) and Caddy for TLS, is rendered by:
+#   kortix self-host init --domain kortix.example.com
+# See https://kortix.com/docs/host for the install steps.
+#
+# Values come from a .env file beside this file. Create it with the keys listed
+# in docs/configuration.md. Docs: https://kortix.com/docs/host
+name: kortix-selfhost
+
+services:
+  kortix-db:
+    image: supabase/postgres:17.6.1.136
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - kortix-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  kortix-migrate:
+    image: kortix/kortix-api:${KORTIX_IMAGE_TAG:-stable}
+    user: "0:0"
+    command: ["bun", "/app/packages/db/scripts/migrate.ts", "bootstrap"]
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@kortix-db:5432/postgres
+    depends_on:
+      kortix-db:
+        condition: service_healthy
+    restart: "no"
+
+  kortix-api:
+    image: kortix/kortix-api:${KORTIX_IMAGE_TAG:-stable}
+    user: "0:0"
+    ports:
+      - "127.0.0.1:${API_PORT:-8008}:8008"
+    env_file:
+      - .env
+    environment:
+      PORT: "8008"
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@kortix-db:5432/postgres
+      FRONTEND_URL: ${PUBLIC_URL:-http://localhost:3000}
+      LLM_GATEWAY_ENABLED: "true"
+      LLM_GATEWAY_PROXY_TARGET: http://kortix-gateway:8090
+    depends_on:
+      kortix-db:
+        condition: service_healthy
+      kortix-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e \"fetch('http://localhost:8008/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  kortix-gateway:
+    image: kortix/kortix-gateway:${KORTIX_IMAGE_TAG:-stable}
+    environment:
+      PORT: "8090"
+      KORTIX_API_URL: http://kortix-api:8008
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+    depends_on:
+      kortix-api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e \"fetch('http://localhost:8090/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  kortix-frontend:
+    image: kortix/kortix-frontend:${KORTIX_IMAGE_TAG:-stable}
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    environment:
+      KORTIX_API_PROXY_TARGET: http://kortix-api:8008
+      KORTIX_PUBLIC_APP_URL: ${PUBLIC_URL:-http://localhost:3000}
+    depends_on:
+      kortix-api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  kortix-db-data:
