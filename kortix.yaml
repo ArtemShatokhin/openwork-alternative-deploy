@@ -1,0 +1,60 @@
+# Kortix is open source.
+# yaml-language-server: $schema=https://kortix.com/schema/kortix.v2.schema.json
+#
+# Kortix project manifest (v2). This file holds governance only: which agent may
+# run, what it may touch, and when work starts on its own. Agent behavior (system
+# prompt, model, mode, permissions) lives in agents/deploy-ops.md, never here.
+#
+# No secret values belong in this file. The `secrets:` grants below list secret
+# NAMES; set their values with `kortix self-host configure` or in the dashboard.
+kortix_version: 2
+default_agent: deploy-ops
+
+project:
+  name: openwork-alternative-deploy
+  description: Self-host deployment template for the open-source AI Operating System.
+
+env:
+  required: []
+  optional:
+    - KORTIX_SANDBOX_PROVIDER_KEY
+    - GITHUB_AGENT_TOKEN
+
+# Optional: pin the machine image a session boots. The platform uses its default
+# sandbox image when this block is absent. Uncomment to declare a template and
+# point an agent at it with `sandbox: ops`.
+#
+# sandbox:
+#   templates:
+#     - slug: ops
+#       name: Ops
+#       dockerfile: Dockerfile.ops
+#       cpu: 2
+#       memory: 4
+
+agents:
+  deploy-ops:
+    file: agents/deploy-ops.md
+    connectors: all
+    secrets:
+      - KORTIX_SANDBOX_PROVIDER_KEY
+      - GITHUB_AGENT_TOKEN
+    kortix_permissions: all
+    skills: all
+
+triggers:
+  - slug: nightly-self-host-doctor
+    name: Nightly self-host doctor
+    type: cron
+    agent: deploy-ops
+    cron: "0 3 * * *"
+    timezone: UTC
+    prompt: |
+      Check the self-hosted Kortix stack and open a change request with the result.
+
+      1. Run `kortix self-host status` and `kortix self-host doctor`.
+      2. Confirm the Postgres, storage and .env backups under
+         ~/.config/kortix/self-host/<instance>/ were written in the last 24 hours.
+      3. Record the running version and whether an update is pending.
+      4. Write the findings to ops/self-host-health.md with a short pass/fail line
+         per check, then open a change request against main. Do not merge it.
