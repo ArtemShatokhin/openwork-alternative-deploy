@@ -58,7 +58,7 @@ The values each service reads are listed in [Configuration](configuration.md).
 
 ## After the stack is up
 
-1. Set the sandbox provider key. Run `kortix self-host configure` for the interactive prompt, or set `KORTIX_SANDBOX_PROVIDER_KEY` in the instance `.env` and restart. The default provider is Daytona; Platinum and E2B are also supported.
+1. Set the sandbox provider key. Run `kortix self-host configure` for the interactive prompt, or set `KORTIX_SANDBOX_PROVIDER_KEY` in the instance `.env` and restart. Platinum is the default provider; Daytona remains available as a legacy fallback.
 2. Open the app and create your account. Sign up in the dashboard on the domain you set.
 3. Connect a model key. Models are BYOK in the app: open the model picker and add your own provider key. A self-hosted instance uses your own key by default.
 4. Connect GitHub. In the dashboard, go to **Settings → Git** and authorize the repository the agents will work in.
