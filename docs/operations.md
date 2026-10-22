@@ -72,7 +72,7 @@ Confirm the applied limit with `docker stats --no-stream`. A memory change set t
 
 ## Scaling and placement
 
-Agent sessions never run on the box that holds the stack. They run on a separate sandbox provider the API reaches over egress, with Daytona as the default and Platinum and E2B also supported. A bigger control plane does not make sessions faster; it only serves more API traffic. Point the sandbox provider at the capacity you need, and keep the stack sized for its own traffic.
+Agent sessions never run on the box that holds the stack. They run on a separate sandbox provider the API reaches over egress, with Platinum as the default and Daytona as a legacy fallback. A bigger control plane does not make sessions faster; it only serves more API traffic. Point the sandbox provider at the capacity you need, and keep the stack sized for its own traffic.
 
 ## Where to go next
 
