@@ -26,7 +26,7 @@ Both projects are open source and both let you bring your own model keys. They a
 
 OpenWork facts come from OpenWork's own site and repository; Kortix facts come from the Kortix docs and repository. Checked October 2026.
 
-OpenWork's cloud is free for the first five seats, then $10 per seat per month as published on its pricing page, and its Team and Enterprise tiers carry SSO, desktop policies, and a managed inference add-on (checked October 2026). Kortix self-hosts for free with no per-seat price, or runs on managed cloud where Free is $0 with 200 credits per month and one project, and the team plan is $40 per seat per month with 2,500 pooled credits per seat, as written on the Kortix pricing page (checked October 2026).
+OpenWork's cloud is free for the first five seats, then $10 per seat per month as published on its pricing page, and its Team and Enterprise tiers carry SSO, desktop policies, and a managed inference add-on (checked October 2026). Kortix self-hosts for free with no per-seat price, or runs on managed cloud where Free is $0 with 500 credits a month and one project, the paid plan is Credits at 100 credits per dollar with 5,000 credits a month costing $50, and members are unlimited and free, as written on the Kortix pricing page (checked October 2026).
 
 For the full decision, see the [OpenWork vs Kortix comparison](https://openworkalternative.com/openwork-vs-kortix) on the campaign site.
 
